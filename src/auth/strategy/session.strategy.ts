@@ -17,6 +17,6 @@ export class SessionStrategy extends PassportStrategy(Strategy, 'session') {
   }
 
   async validate(payload: any) {
-    return payload;
+    return payload.user;
   }
 }

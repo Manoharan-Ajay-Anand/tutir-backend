@@ -3,12 +3,16 @@ import { UserView } from 'src/user/user.schema';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { jwtConstants } from './strategy/session.strategy';
 
 export interface AppSession {
-  refresh: string;
+  refresh: {
+    token: string;
+    expiry: number;
+  };
   session: {
     token: string;
+    expiry: number;
+    refreshExpiry: number;
     user: any;
   };
 }
@@ -42,19 +46,24 @@ export class AuthService {
   }
 
   createSession(user: any): AppSession {
+    const currentDate = Date.now();
+    const sessionExpiryMs = (Math.floor(currentDate / 1000) + 1 * 60) * 1000;
+    const refreshExpiryMs = (Math.floor(currentDate / 1000) + 3 * 60) * 1000;
+    const sessionPayload = { user: user, exp: sessionExpiryMs / 1000 };
+    const refreshPayload = { id: user.id, exp: refreshExpiryMs / 1000 };
     return {
-      refresh: this.jwtService.sign(
-        { id: user.id },
-        {
+      refresh: {
+        token: this.jwtService.sign(refreshPayload, {
           secret: process.env.APP_SECRET,
-          expiresIn: '2d',
-        },
-      ),
-      session: {
-        token: this.jwtService.sign(user, {
-          secret: process.env.APP_SECRET,
-          expiresIn: '60s',
         }),
+        expiry: refreshExpiryMs,
+      },
+      session: {
+        token: this.jwtService.sign(sessionPayload, {
+          secret: process.env.APP_SECRET,
+        }),
+        expiry: sessionExpiryMs,
+        refreshExpiry: refreshExpiryMs,
         user: user,
       },
     };

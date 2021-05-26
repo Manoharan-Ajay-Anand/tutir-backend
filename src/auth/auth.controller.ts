@@ -37,10 +37,10 @@ export class AuthController {
   async loginUser(@Req() req, @Res({ passthrough: true }) res: Response) {
     const user = req.user;
     const appSession = this.authService.createSession(user);
-    res.cookie('app-refresh-token', appSession.refresh, {
+    res.cookie('app-refresh-token', appSession.refresh.token, {
       httpOnly: true,
-      maxAge: 2 * 24 * 60 * 60 * 1000,
       path: '/auth/refresh',
+      expires: new Date(appSession.refresh.expiry),
     });
     return new AppSuccess('auth_login_success', appSession.session);
   }
@@ -50,10 +50,10 @@ export class AuthController {
   async refreshSession(@Req() req, @Res({ passthrough: true }) res: Response) {
     const user = req.user;
     const appSession = this.authService.createSession(user);
-    res.cookie('app-refresh-token', appSession.refresh, {
+    res.cookie('app-refresh-token', appSession.refresh.token, {
       httpOnly: true,
-      maxAge: 2 * 24 * 60 * 60 * 1000,
       path: '/auth/refresh',
+      expires: new Date(appSession.refresh.expiry),
     });
     return new AppSuccess('auth_refresh_success', appSession.session);
   }
