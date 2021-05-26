@@ -47,8 +47,10 @@ export class AuthService {
 
   createSession(user: any): AppSession {
     const currentDate = Date.now();
-    const sessionExpiryMs = (Math.floor(currentDate / 1000) + 1 * 60) * 1000;
-    const refreshExpiryMs = (Math.floor(currentDate / 1000) + 3 * 60) * 1000;
+    const sessionExpiryMs =
+      (Math.floor(currentDate / 1000) + 2 * 60 * 60) * 1000;
+    const refreshExpiryMs =
+      (Math.floor(currentDate / 1000) + 2 * 24 * 60 * 60) * 1000;
     const sessionPayload = { user: user, exp: sessionExpiryMs / 1000 };
     const refreshPayload = { id: user.id, exp: refreshExpiryMs / 1000 };
     return {
