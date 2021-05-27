@@ -1,9 +1,10 @@
 steps:
-  - name: node
-    entrypoint: npm
-    args: ['install']
-  - name: node
-    entrypoint: npm
-    args: ['run', 'build']
-  - name: 'gcr.io/cloud-builders/docker'
-    args: [ 'build', '-t', 'gcr.io/tutir-314915/backend:1.0', '.' ]
+- name: node
+  entrypoint: npm
+  args: ['install']
+- name: node
+  entrypoint: npm
+  args: ['run', 'build']
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'gcr.io/tutir-314915/backend:1.0', '.' ]
+images: ['gcr.io/tutir-314915/backend:1.0']
