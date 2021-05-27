@@ -8,7 +8,7 @@ COPY ["package.json", "package-lock.json*", "./"]
 
 RUN npm install --production
 
-COPY . .
+COPY ./dist ./dist/
 
 EXPOSE 3000
 
