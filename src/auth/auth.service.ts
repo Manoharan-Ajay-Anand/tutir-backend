@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { UserView } from 'src/user/user.schema';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { AppError } from 'src/response/appError';
 
 export interface AppSession {
   refresh: {
@@ -25,6 +26,10 @@ export class AuthService {
   ) {}
 
   async createUser(name: string, email: string, password: string) {
+    const user = await this.userService.findOne(undefined, email);
+    if (user) {
+      throw new AppError(HttpStatus.BAD_REQUEST, 'user_already_exists');
+    }
     const passwordHash = await bcrypt.hash(password, 10);
     await this.userService.createUser(name, email, passwordHash);
   }
