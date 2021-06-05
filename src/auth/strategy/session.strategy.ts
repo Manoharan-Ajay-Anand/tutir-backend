@@ -2,10 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
-export const jwtConstants = {
-  secret: 'secretKey',
-};
-
 @Injectable()
 export class SessionStrategy extends PassportStrategy(Strategy, 'session') {
   constructor() {

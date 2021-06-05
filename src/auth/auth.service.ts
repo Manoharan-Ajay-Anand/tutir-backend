@@ -1,9 +1,13 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { UserView } from 'src/user/user.schema';
-import { UserService } from 'src/user/user.service';
+import { Injectable } from '@nestjs/common';
+import { UserView } from '../user/user.schema';
+import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { AppError } from 'src/response/appError';
+import { LoginFailedError, UserExistsError } from './auth.error';
+
+export const SESSION_TOKEN_EXPIRY_SEC = 2 * 60 * 60;
+
+export const REFRESH_TOKEN_EXPIRY_SEC = 2 * 24 * 60 * 60;
 
 export interface AppSession {
   refresh: {
@@ -28,24 +32,24 @@ export class AuthService {
   async createUser(name: string, email: string, password: string) {
     const user = await this.userService.findOne(undefined, email);
     if (user) {
-      throw new AppError(HttpStatus.BAD_REQUEST, 'user_already_exists');
+      throw new UserExistsError();
     }
     const passwordHash = await bcrypt.hash(password, 10);
     await this.userService.createUser(name, email, passwordHash);
   }
 
   async validateUser(
-    id: string | undefined,
-    email: string | undefined,
+    id: string,
+    email: string,
     password: string,
   ): Promise<UserView> {
     const user = await this.userService.findOne(id, email);
     if (!user) {
-      return null;
+      throw new LoginFailedError();
     }
     const match = await bcrypt.compare(password, user.passwordHash);
     if (!match) {
-      return null;
+      throw new LoginFailedError();
     }
     return this.userService.convertToView(user);
   }
@@ -53,9 +57,9 @@ export class AuthService {
   createSession(user: any): AppSession {
     const currentDate = Date.now();
     const sessionExpiryMs =
-      (Math.floor(currentDate / 1000) + 2 * 60 * 60) * 1000;
+      (Math.floor(currentDate / 1000) + SESSION_TOKEN_EXPIRY_SEC) * 1000;
     const refreshExpiryMs =
-      (Math.floor(currentDate / 1000) + 2 * 24 * 60 * 60) * 1000;
+      (Math.floor(currentDate / 1000) + REFRESH_TOKEN_EXPIRY_SEC) * 1000;
     const sessionPayload = { user: user, exp: sessionExpiryMs / 1000 };
     const refreshPayload = { id: user.id, exp: refreshExpiryMs / 1000 };
     return {

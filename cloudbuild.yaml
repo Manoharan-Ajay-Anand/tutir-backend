@@ -4,6 +4,9 @@ steps:
   args: ['install']
 - name: node
   entrypoint: npm
+  args: ['run', 'test']
+- name: node
+  entrypoint: npm
   args: ['run', 'build']
 - name: 'gcr.io/cloud-builders/docker'
   args: [ 'build', '-t', 'gcr.io/tutir-314915/backend:$COMMIT_SHA', '.' ]

@@ -1,7 +1,7 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
-import { SessionAuthGuard } from 'src/auth/auth.guards';
-import { AppResponse } from 'src/response/appResponse';
-import { AppSuccess } from 'src/response/appSuccess';
+import { SessionAuthGuard } from '../auth/auth.guards';
+import { AppResponse } from '../response/appResponse';
+import { AppSuccess } from '../response/appSuccess';
 import { UserView } from './user.schema';
 
 @UseGuards(SessionAuthGuard)

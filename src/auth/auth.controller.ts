@@ -9,9 +9,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { AppError } from 'src/response/appError';
-import { AppResponse } from 'src/response/appResponse';
-import { AppSuccess } from 'src/response/appSuccess';
+import { AppError } from '../app.error';
+import { AppResponse } from '../response/appResponse';
+import { AppSuccess } from '../response/appSuccess';
 import { LocalAuthGuard, RefreshAuthGuard } from './auth.guards';
 import { AuthService } from './auth.service';
 
