@@ -1,12 +1,13 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { AppError } from 'src/response/appError';
+import { InvalidParamsError } from '../app.error';
+import { RefreshFailedError, SessionInvalidError } from './auth.error';
 
 @Injectable()
 export class LocalAuthGuard extends AuthGuard('local') {
   handleRequest(err, user) {
     if (err || !user) {
-      throw err || new AppError(HttpStatus.BAD_REQUEST, 'invalid_params');
+      throw err || new InvalidParamsError();
     }
     return user;
   }
@@ -16,9 +17,7 @@ export class LocalAuthGuard extends AuthGuard('local') {
 export class SessionAuthGuard extends AuthGuard('session') {
   handleRequest(err, user) {
     if (err || !user) {
-      throw (
-        err || new AppError(HttpStatus.UNAUTHORIZED, 'auth_session_invalid')
-      );
+      throw err || new SessionInvalidError();
     }
     return user;
   }
@@ -28,7 +27,7 @@ export class SessionAuthGuard extends AuthGuard('session') {
 export class RefreshAuthGuard extends AuthGuard('refresh') {
   handleRequest(err, user) {
     if (err || !user) {
-      throw err || new AppError(HttpStatus.UNAUTHORIZED, 'auth_refresh_failed');
+      throw err || new RefreshFailedError();
     }
     return user;
   }

@@ -1,8 +1,7 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
-import { AppError } from 'src/response/appError';
-import { UserView } from 'src/user/user.schema';
+import { UserView } from '../../user/user.schema';
 import { AuthService } from '../auth.service';
 
 @Injectable()
@@ -17,9 +16,6 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
       email,
       password,
     );
-    if (!user) {
-      throw new AppError(HttpStatus.UNAUTHORIZED, 'auth_login_failed');
-    }
     return user;
   }
 }
