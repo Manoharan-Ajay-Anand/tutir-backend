@@ -24,7 +24,7 @@ export class UserService {
     return user.save();
   }
 
-  async findOne(id: string, email: string): Promise<UserDocument> {
+  async findOne(id?: string, email?: string): Promise<UserDocument> {
     if (id) {
       return await this.userModel.findById(id).exec();
     } else if (email) {
