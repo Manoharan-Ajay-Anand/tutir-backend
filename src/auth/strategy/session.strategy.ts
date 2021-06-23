@@ -19,6 +19,7 @@ export class SessionStrategy extends PassportStrategy(Strategy, 'session') {
       id: new Types.ObjectId(user.id),
       name: user.name,
       email: user.email,
+      profileImageUrl: user.profileImageUrl,
     };
   }
 }

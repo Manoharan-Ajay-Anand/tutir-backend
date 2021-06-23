@@ -14,6 +14,9 @@ export class Video {
   @Prop()
   url: string;
 
+  @Prop()
+  thumbnailUrl: string;
+
   @Prop([String])
   notes: string[];
 
@@ -21,6 +24,7 @@ export class Video {
     raw({
       id: { type: Types.ObjectId },
       name: { type: String },
+      profileImageUrl: { type: String },
     }),
   )
   owner: Owner;
@@ -37,6 +41,7 @@ export interface VideoView {
   title: string;
   description: string;
   url: string;
+  thumbnailUrl: string;
   notes: Array<string>;
   owner: Owner;
 }

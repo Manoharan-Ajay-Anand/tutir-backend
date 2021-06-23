@@ -19,6 +19,7 @@ export class VideoService {
       title: video.title,
       description: video.description,
       url: video.url,
+      thumbnailUrl: video.thumbnailUrl,
       notes: video.notes,
       owner: video.owner,
     };
@@ -28,10 +29,15 @@ export class VideoService {
     title: string,
     description: string,
     videoFile: Express.Multer.File,
+    thumbnail: Express.Multer.File,
     notes: Array<Express.Multer.File>,
     user: UserView,
-  ): Promise<VideoDocument> {
+  ): Promise<VideoView> {
     const video_url = await this.mediaService.uploadFile(videoFile, 'video');
+    const thumbnail_url = await this.mediaService.uploadFile(
+      thumbnail,
+      'thumbnail',
+    );
     const notes_urls = await Promise.all(
       notes.map((note) => this.mediaService.uploadFile(note, 'notes')),
     );
@@ -39,10 +45,15 @@ export class VideoService {
       title: title,
       description: description,
       url: video_url,
+      thumbnailUrl: thumbnail_url,
       notes: notes_urls,
-      owner: { id: user.id, name: user.name },
+      owner: {
+        id: user.id,
+        name: user.name,
+        profileImageUrl: user.profileImageUrl,
+      },
     });
-    return video.save();
+    return video.save().then(this.convertToView);
   }
 
   async getVideos(): Promise<Array<VideoView>> {
