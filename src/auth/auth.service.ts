@@ -4,6 +4,7 @@ import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginFailedError, UserExistsError } from './auth.error';
+import { Types } from 'mongoose';
 
 export const SESSION_TOKEN_EXPIRY_SEC = 2 * 60 * 60;
 
@@ -39,7 +40,7 @@ export class AuthService {
   }
 
   async validateUser(
-    id: string,
+    id: Types.ObjectId,
     email: string,
     password: string,
   ): Promise<UserView> {
@@ -54,19 +55,22 @@ export class AuthService {
     return this.userService.convertToView(user);
   }
 
-  createSession(user: any): AppSession {
+  createSession(user: any, rememberMe: boolean): AppSession {
     const currentDate = Date.now();
     const sessionExpiryMs =
       (Math.floor(currentDate / 1000) + SESSION_TOKEN_EXPIRY_SEC) * 1000;
-    const refreshExpiryMs =
-      (Math.floor(currentDate / 1000) + REFRESH_TOKEN_EXPIRY_SEC) * 1000;
+    const refreshExpiryMs = rememberMe
+      ? (Math.floor(currentDate / 1000) + REFRESH_TOKEN_EXPIRY_SEC) * 1000
+      : sessionExpiryMs;
     const sessionPayload = { user: user, exp: sessionExpiryMs / 1000 };
     const refreshPayload = { id: user.id, exp: refreshExpiryMs / 1000 };
     return {
       refresh: {
-        token: this.jwtService.sign(refreshPayload, {
-          secret: process.env.APP_SECRET,
-        }),
+        token: rememberMe
+          ? this.jwtService.sign(refreshPayload, {
+              secret: process.env.APP_SECRET,
+            })
+          : null,
         expiry: refreshExpiryMs,
       },
       session: {
