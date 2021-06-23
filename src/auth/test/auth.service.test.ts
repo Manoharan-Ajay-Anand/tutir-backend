@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import { UserView } from '../../user/user.schema';
 import { LoginFailedError, UserExistsError } from '../auth.error';
 import { AppSession, AuthService } from '../auth.service';
@@ -10,14 +11,19 @@ export class TestAuthService extends AuthService {
   }
 
   async validateUser(
-    id: string,
+    id: Types.ObjectId,
     email: string,
     password: string,
   ): Promise<UserView> {
     if (password !== 'correct_password') {
       throw new LoginFailedError();
     }
-    return { id: '123', name: 'user', email: email };
+    return {
+      id: new Types.ObjectId(),
+      name: 'user',
+      email: email,
+      profileImageUrl: null,
+    };
   }
 
   createSession(user: any): AppSession {

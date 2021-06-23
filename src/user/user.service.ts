@@ -1,14 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
+import { MediaService } from '../media/media.service';
 import { User, UserDocument, UserView } from './user.schema';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private mediaService: MediaService,
+  ) {}
 
   convertToView(user: UserDocument): UserView {
-    return { id: user.id, name: user.name, email: user.email };
+    return {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      profileImageUrl: user.profileImageUrl,
+    };
   }
 
   createUser(
@@ -24,7 +33,7 @@ export class UserService {
     return user.save();
   }
 
-  async findOne(id?: string, email?: string): Promise<UserDocument> {
+  async findOne(id?: Types.ObjectId, email?: string): Promise<UserDocument> {
     if (id) {
       return await this.userModel.findById(id).exec();
     } else if (email) {
@@ -32,5 +41,36 @@ export class UserService {
     } else {
       throw Error('UserService findOne invalid params');
     }
+  }
+
+  changeName(id: Types.ObjectId, name: string): Promise<UserView> {
+    return this.userModel
+      .findByIdAndUpdate(id, { name: name }, { new: true })
+      .exec()
+      .then(this.convertToView);
+  }
+
+  async changeProfileImage(
+    id: Types.ObjectId,
+    profileImage: Express.Multer.File,
+  ): Promise<UserView> {
+    const profileImageUrl = await this.mediaService.uploadFile(
+      profileImage,
+      'images',
+    );
+    return this.userModel
+      .findByIdAndUpdate(
+        id,
+        { profileImageUrl: profileImageUrl },
+        { new: true },
+      )
+      .exec()
+      .then(this.convertToView);
+  }
+
+  async addFavouriteVideo(userId: Types.ObjectId, videoId: Types.ObjectId) {
+    await this.userModel.findByIdAndUpdate(userId, {
+      $addToSet: { favourites: videoId },
+    });
   }
 }

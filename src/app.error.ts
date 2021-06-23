@@ -1,6 +1,8 @@
 import { HttpStatus } from '@nestjs/common';
 
 export class AppError {
+  name = 'App error';
+  message = '';
   status: number;
   code: string;
   payload: any;

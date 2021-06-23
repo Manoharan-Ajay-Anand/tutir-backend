@@ -34,14 +34,20 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async loginUser(@Req() req, @Res({ passthrough: true }) res: Response) {
+  async loginUser(
+    @Req() req,
+    @Body('rememberMe') rememberMe: boolean,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const user = req.user;
-    const appSession = this.authService.createSession(user);
-    res.cookie('app-refresh-token', appSession.refresh.token, {
-      httpOnly: true,
-      path: '/auth/refresh',
-      expires: new Date(appSession.refresh.expiry),
-    });
+    const appSession = this.authService.createSession(user, rememberMe);
+    if (rememberMe) {
+      res.cookie('app-refresh-token', appSession.refresh.token, {
+        httpOnly: true,
+        path: '/auth/refresh',
+        expires: new Date(appSession.refresh.expiry),
+      });
+    }
     return new AppSuccess('auth_login_success', appSession.session);
   }
 
@@ -49,7 +55,7 @@ export class AuthController {
   @Get('refresh')
   async refreshSession(@Req() req, @Res({ passthrough: true }) res: Response) {
     const user = req.user;
-    const appSession = this.authService.createSession(user);
+    const appSession = this.authService.createSession(user, true);
     res.cookie('app-refresh-token', appSession.refresh.token, {
       httpOnly: true,
       path: '/auth/refresh',
