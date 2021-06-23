@@ -11,35 +11,26 @@ import {
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
-import base64url from 'base64url';
-import { randomBytes } from 'crypto';
 import { Types } from 'mongoose';
-import { diskStorage } from 'multer';
-import { SessionAuthGuard } from 'src/auth/auth.guards';
-import { AppResponse } from 'src/response/appResponse';
-import { AppSuccess } from 'src/response/appSuccess';
-import { UserDocument } from 'src/user/user.schema';
-import { UserService } from 'src/user/user.service';
+import { SessionAuthGuard } from '../auth/auth.guards';
+import { MediaMulterEngine } from '../media/media.util';
+import { AppResponse } from '../response/appResponse';
+import { AppSuccess } from '../response/appSuccess';
+import { UserDocument } from '../user/user.schema';
+import { UserService } from '../user/user.service';
 import { UnsupportedFileError } from '../media/media.error';
 import { VideoService } from './video.service';
+import { InvalidParamsError } from 'src/app.error';
 
 const multerOptions: MulterOptions = {
-  storage: diskStorage({
-    filename(_req, file, cb) {
-      let extension = '';
-      if (file.mimetype === 'video/mp4') {
-        extension = '.mp4';
-      } else if (file.mimetype === 'application/pdf') {
-        extension = '.pdf';
-      }
-      const name = base64url.encode(randomBytes(24));
-      cb(null, name + extension);
-    },
-  }),
+  storage: MediaMulterEngine,
   fileFilter(_req, file, cb) {
     if (
       (file.fieldname === 'video' && file.mimetype !== 'video/mp4') ||
-      (file.fieldname === 'notes' && file.mimetype !== 'application/pdf')
+      (file.fieldname === 'notes' && file.mimetype !== 'application/pdf') ||
+      (file.fieldname === 'thumbnail' &&
+        file.mimetype !== 'image/jpeg' &&
+        file.mimetype !== 'image/png')
     ) {
       return cb(new UnsupportedFileError(), false);
     }
@@ -58,7 +49,11 @@ export class VideoController {
   @UseGuards(SessionAuthGuard)
   @UseInterceptors(
     FileFieldsInterceptor(
-      [{ name: 'video', maxCount: 1 }, { name: 'notes' }],
+      [
+        { name: 'video', maxCount: 1 },
+        { name: 'thumbnail', maxCount: 1 },
+        { name: 'notes' },
+      ],
       multerOptions,
     ),
   )
@@ -68,16 +63,21 @@ export class VideoController {
     @Body('title') title: string,
     @Body('description') description: string,
   ): Promise<AppResponse> {
+    if (!title || !description) {
+      throw new InvalidParamsError();
+    }
     const video: Express.Multer.File = files['video'][0];
+    const thumbnail: Express.Multer.File = files['thumbnail'][0];
     const notes: Array<Express.Multer.File> = files['notes'];
-    await this.videoService.createVideo(
+    const videoDoc = await this.videoService.createVideo(
       title,
       description,
       video,
+      thumbnail,
       notes,
       req.user,
     );
-    return new AppSuccess('video_uploaded');
+    return new AppSuccess('video_uploaded', videoDoc);
   }
 
   @Get('')
