@@ -3,8 +3,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { MediaService } from 'src/media/media.service';
 import { UserView } from 'src/user/user.schema';
-import { VideoNotFoundError } from './video.error';
-import { Video, VideoDocument, VideoView } from './video.schema';
+import { VideoNotFoundError } from '../video.error';
+import { Video, VideoDocument, VideoView } from '../schema/video.schema';
 
 @Injectable()
 export class VideoService {
@@ -21,6 +21,7 @@ export class VideoService {
       url: video.url,
       thumbnailUrl: video.thumbnailUrl,
       notes: video.notes,
+      tags: video.tags,
       owner: video.owner,
     };
   }
@@ -31,6 +32,7 @@ export class VideoService {
     videoFile: Express.Multer.File,
     thumbnail: Express.Multer.File,
     notes: Array<Express.Multer.File>,
+    tags: Array<string>,
     user: UserView,
   ): Promise<VideoView> {
     const video_url = await this.mediaService.uploadFile(videoFile, 'video');
@@ -47,6 +49,7 @@ export class VideoService {
       url: video_url,
       thumbnailUrl: thumbnail_url,
       notes: notes_urls,
+      tags: tags,
       owner: {
         id: user.id,
         name: user.name,
@@ -60,9 +63,14 @@ export class VideoService {
     return this.videoModel
       .find()
       .exec()
-      .then((videos) => {
-        return videos.map(this.convertToView);
-      });
+      .then((videos) => videos.map(this.convertToView));
+  }
+
+  async getVideosByTag(tag: string): Promise<Array<VideoView>> {
+    return this.videoModel
+      .find({ tags: { $eq: tag } })
+      .exec()
+      .then((videos) => videos.map(this.convertToView));
   }
 
   getVideoById(id: Types.ObjectId): Promise<VideoView> {
