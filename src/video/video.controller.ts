@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Req,
   UploadedFiles,
   UseGuards,
@@ -12,15 +13,20 @@ import {
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { MulterOptions } from '@nestjs/platform-express/multer/interfaces/multer-options.interface';
 import { Types } from 'mongoose';
-import { SessionAuthGuard } from '../auth/auth.guards';
+import {
+  OptionalSessionAuthGuard,
+  SessionAuthGuard,
+} from '../auth/auth.guards';
 import { MediaMulterEngine } from '../media/media.util';
 import { AppResponse } from '../response/appResponse';
 import { AppSuccess } from '../response/appSuccess';
 import { UserDocument } from '../user/user.schema';
 import { UserService } from '../user/user.service';
 import { UnsupportedFileError } from '../media/media.error';
-import { VideoService } from './video.service';
+import { VideoService } from './service/video.service';
 import { InvalidParamsError } from 'src/app.error';
+import { ViewService } from './service/view.service';
+import { VideoView } from './schema/video.schema';
 
 const multerOptions: MulterOptions = {
   storage: MediaMulterEngine,
@@ -43,6 +49,7 @@ export class VideoController {
   constructor(
     private videoService: VideoService,
     private userService: UserService,
+    private viewService: ViewService,
   ) {}
 
   @Post('upload')
@@ -62,8 +69,9 @@ export class VideoController {
     @UploadedFiles() files,
     @Body('title') title: string,
     @Body('description') description: string,
+    @Body('tags') tags: Array<string>,
   ): Promise<AppResponse> {
-    if (!title || !description) {
+    if (!title || !description || !tags || tags.length == 0) {
       throw new InvalidParamsError();
     }
     const video: Express.Multer.File = files['video'][0];
@@ -75,14 +83,20 @@ export class VideoController {
       video,
       thumbnail,
       notes,
+      tags,
       req.user,
     );
     return new AppSuccess('video_uploaded', videoDoc);
   }
 
   @Get('')
-  async getVideos(): Promise<AppResponse> {
-    const videos = await this.videoService.getVideos();
+  async getVideos(@Query('tag') tag: string): Promise<AppResponse> {
+    let videos: Array<VideoView>;
+    if (tag) {
+      videos = await this.videoService.getVideosByTag(tag);
+    } else {
+      videos = await this.videoService.getVideos();
+    }
     return new AppSuccess('videos_retrieved', videos);
   }
 
@@ -106,10 +120,22 @@ export class VideoController {
     return new AppSuccess('favourites_retrieved', videos);
   }
 
+  @Get('history')
+  @UseGuards(SessionAuthGuard)
+  async getHistory(@Req() req): Promise<AppResponse> {
+    const videoIdList = await this.viewService.getViewedVideoIdList(req.user);
+    const videos = await this.videoService.getVideosByIdList(videoIdList);
+    return new AppSuccess('history_retrieved', videos);
+  }
+
   @Get(':id')
-  async getVideoById(@Param() params): Promise<AppResponse> {
+  @UseGuards(OptionalSessionAuthGuard)
+  async getVideoById(@Req() req, @Param() params): Promise<AppResponse> {
     const videoId = new Types.ObjectId(params.id);
     const video = await this.videoService.getVideoById(videoId);
+    if (req.user) {
+      await this.viewService.addView(videoId, req.user);
+    }
     return new AppSuccess('video_retrieved', video);
   }
 }

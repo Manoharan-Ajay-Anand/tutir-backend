@@ -24,6 +24,16 @@ export class SessionAuthGuard extends AuthGuard('session') {
 }
 
 @Injectable()
+export class OptionalSessionAuthGuard extends AuthGuard('session') {
+  handleRequest(err, user) {
+    if (err) {
+      throw err;
+    }
+    return user;
+  }
+}
+
+@Injectable()
 export class RefreshAuthGuard extends AuthGuard('refresh') {
   handleRequest(err, user) {
     if (err || !user) {

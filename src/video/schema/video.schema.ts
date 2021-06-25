@@ -1,5 +1,6 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { Owner } from '../../user/user.schema';
 
 export type VideoDocument = Video & Document;
 
@@ -20,6 +21,9 @@ export class Video {
   @Prop([String])
   notes: string[];
 
+  @Prop([String])
+  tags: string[];
+
   @Prop(
     raw({
       id: { type: Types.ObjectId },
@@ -30,12 +34,6 @@ export class Video {
   owner: Owner;
 }
 
-export interface Owner {
-  id: Types.ObjectId;
-  name: string;
-  profileImageUrl: string;
-}
-
 export interface VideoView {
   id: Types.ObjectId;
   title: string;
@@ -43,6 +41,7 @@ export interface VideoView {
   url: string;
   thumbnailUrl: string;
   notes: Array<string>;
+  tags: Array<string>;
   owner: Owner;
 }
 

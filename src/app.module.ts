@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
+import { CommentModule } from './comment/comment.module';
+import { UserModule } from './user/user.module';
 import { VideoModule } from './video/video.module';
 
 @Module({
@@ -13,6 +15,8 @@ import { VideoModule } from './video/video.module';
     MongooseModule.forRoot(process.env.MONGO_URL, { useFindAndModify: false }),
     AuthModule,
     VideoModule,
+    CommentModule,
+    UserModule,
   ],
   controllers: [],
   providers: [],
