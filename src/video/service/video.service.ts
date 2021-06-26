@@ -66,9 +66,16 @@ export class VideoService {
       .then((videos) => videos.map(this.convertToView));
   }
 
-  async getVideosByTag(tag: string): Promise<Array<VideoView>> {
+  async getVideosByTags(tags: Array<string>): Promise<Array<VideoView>> {
     return this.videoModel
-      .find({ tags: { $eq: tag } })
+      .find({ tags: { $in: tags } })
+      .exec()
+      .then((videos) => videos.map(this.convertToView));
+  }
+
+  async getVideosByOwner(ownerId: Types.ObjectId): Promise<Array<VideoView>> {
+    return this.videoModel
+      .find({ 'owner.id': { $eq: ownerId } })
       .exec()
       .then((videos) => videos.map(this.convertToView));
   }

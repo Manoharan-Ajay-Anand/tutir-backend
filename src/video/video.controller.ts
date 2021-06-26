@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  Param,
   Post,
   Query,
   Req,
@@ -26,7 +25,6 @@ import { UnsupportedFileError } from '../media/media.error';
 import { VideoService } from './service/video.service';
 import { InvalidParamsError } from 'src/app.error';
 import { ViewService } from './service/view.service';
-import { VideoView } from './schema/video.schema';
 
 const multerOptions: MulterOptions = {
   storage: MediaMulterEngine,
@@ -95,14 +93,30 @@ export class VideoController {
   }
 
   @Get('')
-  async getVideos(@Query('tag') tag: string): Promise<AppResponse> {
-    let videos: Array<VideoView>;
-    if (tag) {
-      videos = await this.videoService.getVideosByTag(tag);
+  @UseGuards(OptionalSessionAuthGuard)
+  async getVideos(
+    @Req() req,
+    @Query('id') id: string,
+    @Query('owner') owner: string,
+    @Query('tag') tags: Array<string>,
+  ): Promise<AppResponse> {
+    let payload: any;
+    if (id) {
+      const videoId = new Types.ObjectId(id);
+      payload = await this.videoService.getVideoById(videoId);
+      if (req.user) {
+        await this.viewService.addView(videoId, req.user);
+      }
+    } else if (owner) {
+      payload = await this.videoService.getVideosByOwner(
+        new Types.ObjectId(owner),
+      );
+    } else if (tags) {
+      payload = await this.videoService.getVideosByTags(tags);
     } else {
-      videos = await this.videoService.getVideos();
+      payload = await this.videoService.getVideos();
     }
-    return new AppSuccess('videos_retrieved', videos);
+    return new AppSuccess('videos_retrieved', payload);
   }
 
   @Post('favourites')
@@ -131,16 +145,5 @@ export class VideoController {
     const videoIdList = await this.viewService.getViewedVideoIdList(req.user);
     const videos = await this.videoService.getVideosByIdList(videoIdList);
     return new AppSuccess('history_retrieved', videos);
-  }
-
-  @Get(':id')
-  @UseGuards(OptionalSessionAuthGuard)
-  async getVideoById(@Req() req, @Param() params): Promise<AppResponse> {
-    const videoId = new Types.ObjectId(params.id);
-    const video = await this.videoService.getVideoById(videoId);
-    if (req.user) {
-      await this.viewService.addView(videoId, req.user);
-    }
-    return new AppSuccess('video_retrieved', video);
   }
 }
