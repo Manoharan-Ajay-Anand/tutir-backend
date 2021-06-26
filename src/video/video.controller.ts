@@ -74,9 +74,14 @@ export class VideoController {
     if (!title || !description || !tags || tags.length == 0) {
       throw new InvalidParamsError();
     }
+    if (!files['video'] || !files['thumbnail']) {
+      throw new InvalidParamsError();
+    }
     const video: Express.Multer.File = files['video'][0];
     const thumbnail: Express.Multer.File = files['thumbnail'][0];
-    const notes: Array<Express.Multer.File> = files['notes'];
+    const notes: Array<Express.Multer.File> = files['notes']
+      ? files['notes']
+      : [];
     const videoDoc = await this.videoService.createVideo(
       title,
       description,
