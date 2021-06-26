@@ -28,4 +28,10 @@ export interface UserView {
   profileImageUrl: string;
 }
 
+export interface Owner {
+  id: Types.ObjectId;
+  name: string;
+  profileImageUrl: string;
+}
+
 export const UserSchema = SchemaFactory.createForClass(User);
