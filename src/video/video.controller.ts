@@ -23,8 +23,9 @@ import { UserDocument } from '../user/user.schema';
 import { UserService } from '../user/user.service';
 import { UnsupportedFileError } from '../media/media.error';
 import { VideoService } from './service/video.service';
-import { InvalidParamsError } from 'src/app.error';
+import { InvalidParamsError } from '../app.error';
 import { ViewService } from './service/view.service';
+import { MediaService } from '../media/media.service';
 
 const multerOptions: MulterOptions = {
   storage: MediaMulterEngine,
@@ -48,6 +49,7 @@ export class VideoController {
     private videoService: VideoService,
     private userService: UserService,
     private viewService: ViewService,
+    private mediaService: MediaService,
   ) {}
 
   @Post('upload')
@@ -80,12 +82,20 @@ export class VideoController {
     const notes: Array<Express.Multer.File> = files['notes']
       ? files['notes']
       : [];
+    const videoUrl = await this.mediaService.uploadFile(video, 'video');
+    const thumbnailUrl = await this.mediaService.uploadFile(
+      thumbnail,
+      'thumbnail',
+    );
+    const notesUrlList = await Promise.all(
+      notes.map((note) => this.mediaService.uploadFile(note, 'notes')),
+    );
     const videoDoc = await this.videoService.createVideo(
       title,
       description,
-      video,
-      thumbnail,
-      notes,
+      videoUrl,
+      thumbnailUrl,
+      notesUrlList,
       tags,
       req.user,
     );
