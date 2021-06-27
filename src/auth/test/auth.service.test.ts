@@ -4,6 +4,10 @@ import { LoginFailedError, UserExistsError } from '../auth.error';
 import { AppSession, AuthService } from '../auth.service';
 
 export class TestAuthService extends AuthService {
+  constructor() {
+    super(null, null);
+  }
+
   async createUser(name: string, email: string, password: string) {
     if (email === 'userexists@gmail.com') {
       throw new UserExistsError();

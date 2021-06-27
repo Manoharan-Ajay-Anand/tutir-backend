@@ -8,8 +8,8 @@ describe('Auth', () => {
   let authService: AuthService;
   let authController: AuthController;
   let localStrategy: LocalStrategy;
-  beforeAll(async () => {
-    authService = new TestAuthService(null, null);
+  beforeAll(() => {
+    authService = new TestAuthService();
     authController = new AuthController(authService);
     localStrategy = new LocalStrategy(authService);
   });

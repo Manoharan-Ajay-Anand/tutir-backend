@@ -1,15 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { MediaService } from '../media/media.service';
 import { User, UserDocument, UserView } from './user.schema';
 
 @Injectable()
 export class UserService {
-  constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
-    private mediaService: MediaService,
-  ) {}
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   convertToView(user: UserDocument): UserView {
     return {
@@ -50,14 +46,10 @@ export class UserService {
       .then(this.convertToView);
   }
 
-  async changeProfileImage(
+  changeProfileImage(
     id: Types.ObjectId,
-    profileImage: Express.Multer.File,
+    profileImageUrl: string,
   ): Promise<UserView> {
-    const profileImageUrl = await this.mediaService.uploadFile(
-      profileImage,
-      'images',
-    );
     return this.userModel
       .findByIdAndUpdate(
         id,

@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { MediaService } from 'src/media/media.service';
 import { UserView } from 'src/user/user.schema';
 import { VideoNotFoundError } from '../video.error';
 import { Video, VideoDocument, VideoView } from '../schema/video.schema';
@@ -10,7 +9,6 @@ import { Video, VideoDocument, VideoView } from '../schema/video.schema';
 export class VideoService {
   constructor(
     @InjectModel(Video.name) private videoModel: Model<VideoDocument>,
-    private mediaService: MediaService,
   ) {}
 
   convertToView(video: VideoDocument): VideoView {
@@ -29,26 +27,18 @@ export class VideoService {
   async createVideo(
     title: string,
     description: string,
-    videoFile: Express.Multer.File,
-    thumbnail: Express.Multer.File,
-    notes: Array<Express.Multer.File>,
+    videoUrl: string,
+    thumbnailUrl: string,
+    notesUrlList: Array<string>,
     tags: Array<string>,
     user: UserView,
   ): Promise<VideoView> {
-    const video_url = await this.mediaService.uploadFile(videoFile, 'video');
-    const thumbnail_url = await this.mediaService.uploadFile(
-      thumbnail,
-      'thumbnail',
-    );
-    const notes_urls = await Promise.all(
-      notes.map((note) => this.mediaService.uploadFile(note, 'notes')),
-    );
     const video = new this.videoModel({
       title: title,
       description: description,
-      url: video_url,
-      thumbnailUrl: thumbnail_url,
-      notes: notes_urls,
+      url: videoUrl,
+      thumbnailUrl: thumbnailUrl,
+      notes: notesUrlList,
       tags: tags,
       owner: {
         id: user.id,
