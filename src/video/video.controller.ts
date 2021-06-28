@@ -156,4 +156,10 @@ export class VideoController {
     const videos = await this.videoService.getVideosByIdList(videoIdList);
     return new AppSuccess('history_retrieved', videos);
   }
+
+  @Get('tags')
+  async getTags(): Promise<AppResponse> {
+    const tags = await this.videoService.getAllVideoTags();
+    return new AppSuccess('tags_retrieved', tags);
+  }
 }

@@ -90,4 +90,17 @@ export class VideoService {
         return videos.map(this.convertToView);
       });
   }
+
+  getAllVideoTags(): Promise<Array<string>> {
+    return this.videoModel
+      .aggregate([
+        { $unwind: '$tags' },
+        { $group: { _id: '$tags', number: { $sum: 1 } } },
+        { $sort: { number: -1 } },
+      ])
+      .exec()
+      .then((docs) => {
+        return docs.map((doc) => doc._id);
+      });
+  }
 }
