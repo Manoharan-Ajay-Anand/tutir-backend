@@ -16,6 +16,8 @@ import { AppSuccess } from '../response/appSuccess';
 import { UserView } from './user.schema';
 import { UserService } from './user.service';
 import { MediaMulterEngine } from '../media/media.util';
+import { MediaService } from '../media/media.service';
+import { InvalidParamsError } from '../app.error';
 
 const multerOptions: MulterOptions = {
   storage: MediaMulterEngine,
@@ -30,11 +32,20 @@ const multerOptions: MulterOptions = {
 @UseGuards(SessionAuthGuard)
 @Controller('user')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private mediaService: MediaService,
+  ) {}
 
   @Post('name')
-  changeName(@Req() req, @Body('name') name): Promise<AppResponse> {
+  async changeName(
+    @Req() req,
+    @Body('name') name: string,
+  ): Promise<AppResponse> {
     const user: UserView = req.user;
+    if (!name) {
+      throw new InvalidParamsError();
+    }
     return this.userService
       .changeName(user.id, name)
       .then((user) => new AppSuccess('profile_name_updated', user));
@@ -42,10 +53,17 @@ export class UserController {
 
   @Post('profileImage')
   @UseInterceptors(FileInterceptor('profileImage', multerOptions))
-  uploadProfileImage(@Req() req, @UploadedFile() profileImage) {
+  async uploadProfileImage(
+    @Req() req,
+    @UploadedFile() profileImage: Express.Multer.File,
+  ) {
     const user: UserView = req.user;
+    const profileImageUrl = await this.mediaService.uploadFile(
+      profileImage,
+      'images',
+    );
     return this.userService
-      .changeProfileImage(user.id, profileImage)
+      .changeProfileImage(user.id, profileImageUrl)
       .then((user) => new AppSuccess('profile_image_updated', user));
   }
 }
