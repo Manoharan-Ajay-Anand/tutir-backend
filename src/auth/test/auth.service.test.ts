@@ -40,8 +40,8 @@ export class TestAuthService extends AuthService {
         token: 'test-token',
         expiry: 123,
         refreshExpiry: 123,
-        user: user,
       },
+      user: user,
     };
   }
 }
