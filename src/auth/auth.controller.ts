@@ -48,7 +48,10 @@ export class AuthController {
         expires: new Date(appSession.refresh.expiry),
       });
     }
-    return new AppSuccess('auth_login_success', appSession.session);
+    return new AppSuccess('auth_login_success', {
+      session: appSession.session,
+      user: appSession.user,
+    });
   }
 
   @UseGuards(RefreshAuthGuard)
@@ -61,6 +64,9 @@ export class AuthController {
       path: '/auth/refresh',
       expires: new Date(appSession.refresh.expiry),
     });
-    return new AppSuccess('auth_refresh_success', appSession.session);
+    return new AppSuccess('auth_refresh_success', {
+      session: appSession.session,
+      user: appSession.user,
+    });
   }
 }

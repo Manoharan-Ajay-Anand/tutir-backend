@@ -19,8 +19,8 @@ export interface AppSession {
     token: string;
     expiry: number;
     refreshExpiry: number;
-    user: any;
   };
+  user: any;
 }
 
 @Injectable()
@@ -62,7 +62,7 @@ export class AuthService {
     const refreshExpiryMs = rememberMe
       ? (Math.floor(currentDate / 1000) + REFRESH_TOKEN_EXPIRY_SEC) * 1000
       : sessionExpiryMs;
-    const sessionPayload = { user: user, exp: sessionExpiryMs / 1000 };
+    const sessionPayload = { id: user.id, exp: sessionExpiryMs / 1000 };
     const refreshPayload = { id: user.id, exp: refreshExpiryMs / 1000 };
     return {
       refresh: {
@@ -79,8 +79,8 @@ export class AuthService {
         }),
         expiry: sessionExpiryMs,
         refreshExpiry: refreshExpiryMs,
-        user: user,
       },
+      user: user,
     };
   }
 }
