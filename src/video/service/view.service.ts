@@ -18,7 +18,12 @@ export class ViewService {
 
   async getViewedVideoIdList(user: UserView): Promise<Array<Types.ObjectId>> {
     return this.viewModel
-      .distinct('videoId', { viewerId: { $eq: user.id } })
-      .exec();
+      .aggregate([
+        { $match: { viewerId: user.id } },
+        { $group: { _id: '$videoId', viewId: { $max: '$_id' } } },
+        { $sort: { viewId: -1 } },
+      ])
+      .exec()
+      .then((docs) => docs.map((doc) => doc._id));
   }
 }

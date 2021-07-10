@@ -102,6 +102,16 @@ export class VideoController {
     return new AppSuccess('video_uploaded', videoDoc);
   }
 
+  @Post('delete')
+  @UseGuards(SessionAuthGuard)
+  deleteVideo(@Req() req, @Body('id') videoId: string): Promise<AppResponse> {
+    return this.videoService
+      .deleteVideo(new Types.ObjectId(videoId), req.user.id)
+      .then(() => {
+        return new AppSuccess('video_deleted');
+      });
+  }
+
   @Get('')
   @UseGuards(OptionalSessionAuthGuard)
   async getVideos(
@@ -152,8 +162,16 @@ export class VideoController {
   @Get('history')
   @UseGuards(SessionAuthGuard)
   async getHistory(@Req() req): Promise<AppResponse> {
+    const videoIdMap = new Map<string, number>();
     const videoIdList = await this.viewService.getViewedVideoIdList(req.user);
+    videoIdList.forEach((id, index) => {
+      videoIdMap.set(id.toHexString(), index);
+    });
     const videos = await this.videoService.getVideosByIdList(videoIdList);
+    videos.sort(
+      (a, b) =>
+        videoIdMap.get(a.id.toHexString()) - videoIdMap.get(b.id.toHexString()),
+    );
     return new AppSuccess('history_retrieved', videos);
   }
 

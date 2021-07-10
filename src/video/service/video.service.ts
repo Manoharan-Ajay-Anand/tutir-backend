@@ -13,7 +13,7 @@ export class VideoService {
 
   convertToView(video: VideoDocument): VideoView {
     return {
-      id: video.id,
+      id: video._id,
       title: video.title,
       description: video.description,
       url: video.url,
@@ -47,6 +47,13 @@ export class VideoService {
       },
     });
     return video.save().then(this.convertToView);
+  }
+
+  async deleteVideo(id: Types.ObjectId, ownerId: Types.ObjectId) {
+    await this.videoModel.deleteOne({
+      _id: { $eq: id },
+      'owner.id': { $eq: ownerId },
+    });
   }
 
   async getVideos(): Promise<Array<VideoView>> {
@@ -99,8 +106,6 @@ export class VideoService {
         { $sort: { number: -1 } },
       ])
       .exec()
-      .then((docs) => {
-        return docs.map((doc) => doc._id);
-      });
+      .then((docs) => docs.map((doc) => doc._id));
   }
 }
