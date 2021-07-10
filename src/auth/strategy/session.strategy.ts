@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Types } from 'mongoose';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { UserService } from '../../user/user.service';
 
 @Injectable()
 export class SessionStrategy extends PassportStrategy(Strategy, 'session') {
-  constructor() {
+  constructor(private userService: UserService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -14,12 +15,8 @@ export class SessionStrategy extends PassportStrategy(Strategy, 'session') {
   }
 
   async validate(payload: any) {
-    const user = payload.user;
-    return {
-      id: new Types.ObjectId(user.id),
-      name: user.name,
-      email: user.email,
-      profileImageUrl: user.profileImageUrl,
-    };
+    const id: string = payload.id;
+    const user = await this.userService.findOne(new Types.ObjectId(id));
+    return this.userService.convertToView(user);
   }
 }
