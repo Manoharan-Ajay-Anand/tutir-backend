@@ -32,6 +32,12 @@ export class Video {
     }),
   )
   owner: Owner;
+
+  @Prop({ default: 0 })
+  views: number;
+
+  @Prop({ default: 0 })
+  comments: number;
 }
 
 export interface VideoView {
@@ -43,6 +49,25 @@ export interface VideoView {
   notes: Array<string>;
   tags: Array<string>;
   owner: Owner;
+  views: number;
+  comments: number;
+  uploadDate: Date;
 }
 
 export const VideoSchema = SchemaFactory.createForClass(Video);
+
+export function convertToVideoView(video: VideoDocument): VideoView {
+  return {
+    id: video._id,
+    title: video.title,
+    description: video.description,
+    url: video.url,
+    thumbnailUrl: video.thumbnailUrl,
+    notes: video.notes,
+    tags: video.tags,
+    owner: video.owner,
+    views: video.views,
+    comments: video.comments,
+    uploadDate: video._id.getTimestamp(),
+  };
+}
