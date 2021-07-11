@@ -30,6 +30,9 @@ export class TestVideoService extends VideoService {
         name: user.name,
         profileImageUrl: user.profileImageUrl,
       },
+      views: 0,
+      comments: 0,
+      uploadDate: new Date(),
     };
   }
 }

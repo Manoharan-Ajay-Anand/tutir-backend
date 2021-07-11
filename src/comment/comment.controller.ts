@@ -21,7 +21,7 @@ export class CommentController {
     @Body('text') text: string,
   ): Promise<AppResponse> {
     const id = new Types.ObjectId(videoId);
-    await this.videoService.getVideoById(id);
+    await this.videoService.incrementComment(id);
     const comment = await this.commentService.addComment(req.user, id, text);
     return new AppSuccess('comment_added', comment);
   }
