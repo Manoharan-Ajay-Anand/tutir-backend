@@ -10,6 +10,9 @@ export class View {
 
   @Prop()
   viewerId: Types.ObjectId;
+
+  @Prop([String])
+  tags: string[];
 }
 
 export const ViewSchema = SchemaFactory.createForClass(View);
