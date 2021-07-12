@@ -24,8 +24,8 @@ import { UserService } from '../user/user.service';
 import { UnsupportedFileError } from '../media/media.error';
 import { VideoService } from './service/video.service';
 import { InvalidParamsError } from '../app.error';
-import { ViewService } from './service/view.service';
 import { MediaService } from '../media/media.service';
+import { AnalyticsService } from './service/analytics.service';
 
 const multerOptions: MulterOptions = {
   storage: MediaMulterEngine,
@@ -48,8 +48,8 @@ export class VideoController {
   constructor(
     private videoService: VideoService,
     private userService: UserService,
-    private viewService: ViewService,
     private mediaService: MediaService,
+    private analyticsService: AnalyticsService,
   ) {}
 
   @Post('upload')
@@ -102,6 +102,16 @@ export class VideoController {
     return new AppSuccess('video_uploaded', videoDoc);
   }
 
+  @Post('delete')
+  @UseGuards(SessionAuthGuard)
+  deleteVideo(@Req() req, @Body('id') videoId: string): Promise<AppResponse> {
+    return this.videoService
+      .deleteVideo(new Types.ObjectId(videoId), req.user.id)
+      .then(() => {
+        return new AppSuccess('video_deleted');
+      });
+  }
+
   @Get('')
   @UseGuards(OptionalSessionAuthGuard)
   async getVideos(
@@ -115,7 +125,8 @@ export class VideoController {
       const videoId = new Types.ObjectId(id);
       payload = await this.videoService.getVideoById(videoId);
       if (req.user) {
-        await this.viewService.addView(videoId, req.user);
+        await this.videoService.incrementView(videoId);
+        await this.analyticsService.addView(videoId, req.user.id);
       }
     } else if (owner) {
       payload = await this.videoService.getVideosByOwner(
@@ -152,14 +163,15 @@ export class VideoController {
   @Get('history')
   @UseGuards(SessionAuthGuard)
   async getHistory(@Req() req): Promise<AppResponse> {
-    const videoIdList = await this.viewService.getViewedVideoIdList(req.user);
-    const videos = await this.videoService.getVideosByIdList(videoIdList);
-    return new AppSuccess('history_retrieved', videos);
+    return this.analyticsService.getHistory(req.user.id).then((videos) => {
+      return new AppSuccess('history_retrieved', videos);
+    });
   }
 
   @Get('tags')
-  async getTags(): Promise<AppResponse> {
-    const tags = await this.videoService.getAllVideoTags();
-    return new AppSuccess('tags_retrieved', tags);
+  getTags(): Promise<AppResponse> {
+    return this.analyticsService
+      .getTopVideoTags()
+      .then((tags) => new AppSuccess('tags_retrieved', tags));
   }
 }

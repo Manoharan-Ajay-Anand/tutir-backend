@@ -63,8 +63,8 @@ describe('video', () => {
     videoController = new VideoController(
       videoService,
       null,
-      null,
       mediaService,
+      null,
     );
   });
   describe('uploadVideo', () => {
