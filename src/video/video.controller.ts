@@ -124,18 +124,22 @@ export class VideoController {
     if (id) {
       const videoId = new Types.ObjectId(id);
       payload = await this.videoService.getVideoById(videoId);
+      await this.videoService.incrementView(videoId);
       if (req.user) {
-        await this.videoService.incrementView(videoId);
-        await this.analyticsService.addView(videoId, req.user.id);
+        await this.analyticsService.addView(payload, req.user.id);
       }
     } else if (owner) {
       payload = await this.videoService.getVideosByOwner(
         new Types.ObjectId(owner),
       );
     } else if (tags) {
-      payload = await this.videoService.getVideosByTags(tags);
+      payload = await this.analyticsService.getTopVideosByTags(tags);
     } else {
-      payload = await this.videoService.getVideos();
+      if (req.user) {
+        payload = await this.analyticsService.getRecommendedVideos(req.user.id);
+      } else {
+        payload = await this.analyticsService.getTopVideos();
+      }
     }
     return new AppSuccess('videos_retrieved', payload);
   }
