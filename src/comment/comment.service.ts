@@ -2,21 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { UserView } from 'src/user/user.schema';
-import { Comment, CommentDocument, CommentView } from './comment.schema';
+import {
+  Comment,
+  CommentDocument,
+  CommentView,
+  convertToCommentView,
+} from './comment.schema';
 
 @Injectable()
 export class CommentService {
   constructor(
     @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
   ) {}
-
-  convertToView(comment: CommentDocument): CommentView {
-    return {
-      id: comment._id,
-      text: comment.text,
-      owner: comment.owner,
-    };
-  }
 
   addComment(
     user: UserView,
@@ -32,6 +29,13 @@ export class CommentService {
         profileImageUrl: user.profileImageUrl,
       },
     });
-    return comment.save().then(this.convertToView);
+    return comment.save().then(convertToCommentView);
+  }
+
+  getComments(videoId: Types.ObjectId): Promise<Array<CommentView>> {
+    return this.commentModel
+      .find({ videoId: videoId })
+      .exec()
+      .then((comments) => comments.map(convertToCommentView));
   }
 }

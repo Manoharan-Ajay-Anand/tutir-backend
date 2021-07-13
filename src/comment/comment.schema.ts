@@ -28,4 +28,12 @@ export interface CommentView {
   owner: Owner;
 }
 
+export function convertToCommentView(comment: CommentDocument): CommentView {
+  return {
+    id: comment._id,
+    text: comment.text,
+    owner: comment.owner,
+  };
+}
+
 export const CommentSchema = SchemaFactory.createForClass(Comment);
