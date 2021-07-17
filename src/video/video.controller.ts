@@ -26,6 +26,7 @@ import { VideoService } from './service/video.service';
 import { InvalidParamsError } from '../app.error';
 import { MediaService } from '../media/media.service';
 import { AnalyticsService } from './service/analytics.service';
+import { convertToVideoView } from './schema/video.schema';
 
 const multerOptions: MulterOptions = {
   storage: MediaMulterEngine,
@@ -123,7 +124,9 @@ export class VideoController {
     let payload: any;
     if (id) {
       const videoId = new Types.ObjectId(id);
-      payload = await this.videoService.getVideoById(videoId);
+      payload = await this.videoService
+        .getVideoById(videoId)
+        .then(convertToVideoView);
       await this.videoService.incrementView(videoId);
       if (req.user) {
         await this.analyticsService.addView(payload, req.user.id);

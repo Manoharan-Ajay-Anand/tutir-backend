@@ -33,6 +33,7 @@ export class TestVideoService extends VideoService {
       views: 0,
       comments: 0,
       uploadDate: new Date(),
+      canTip: false,
     };
   }
 }

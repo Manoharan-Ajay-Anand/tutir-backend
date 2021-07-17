@@ -27,6 +27,7 @@ export class TestAuthService extends AuthService {
       name: 'user',
       email: email,
       profileImageUrl: null,
+      stripeConnected: false,
     };
   }
 

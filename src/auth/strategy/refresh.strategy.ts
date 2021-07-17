@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Types } from 'mongoose';
 import { Strategy } from 'passport-jwt';
+import { convertToUserView } from '../../user/user.schema';
 import { UserService } from '../../user/user.service';
 
 function cookieExtractor(req) {
@@ -25,6 +26,6 @@ export class RefreshStrategy extends PassportStrategy(Strategy, 'refresh') {
   async validate(payload: any) {
     const id: string = payload.id;
     const user = await this.userService.findOne(new Types.ObjectId(id));
-    return this.userService.convertToView(user);
+    return convertToUserView(user);
   }
 }

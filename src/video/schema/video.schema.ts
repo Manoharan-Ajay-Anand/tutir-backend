@@ -1,6 +1,5 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { Owner } from '../../user/user.schema';
 
 export type VideoDocument = Video & Document;
 
@@ -31,13 +30,20 @@ export class Video {
       profileImageUrl: { type: String },
     }),
   )
-  owner: Owner;
+  owner: {
+    id: Types.ObjectId;
+    name: string;
+    profileImageUrl: string;
+  };
 
   @Prop({ default: 0 })
   views: number;
 
   @Prop({ default: 0 })
   comments: number;
+
+  @Prop({ default: false })
+  canTip: boolean;
 }
 
 export interface VideoView {
@@ -48,7 +54,12 @@ export interface VideoView {
   thumbnailUrl: string;
   notes: Array<string>;
   tags: Array<string>;
-  owner: Owner;
+  owner: {
+    id: Types.ObjectId;
+    name: string;
+    profileImageUrl: string;
+  };
+  canTip: boolean;
   views: number;
   comments: number;
   uploadDate: Date;
@@ -65,7 +76,12 @@ export function convertToVideoView(video: VideoDocument): VideoView {
     thumbnailUrl: video.thumbnailUrl,
     notes: video.notes,
     tags: video.tags,
-    owner: video.owner,
+    owner: {
+      id: video.owner.id,
+      name: video.owner.name,
+      profileImageUrl: video.owner.profileImageUrl,
+    },
+    canTip: video.canTip,
     views: video.views,
     comments: video.comments,
     uploadDate: video._id.getTimestamp(),

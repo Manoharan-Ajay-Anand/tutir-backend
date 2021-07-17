@@ -13,6 +13,7 @@ export class TestUserService extends UserService {
       name: name,
       email: 'testuser@gmail.com',
       profileImageUrl: null,
+      stripeConnected: false,
     });
   }
 
@@ -25,6 +26,7 @@ export class TestUserService extends UserService {
       name: 'testUser',
       email: 'testuser@gmail.com',
       profileImageUrl: profileImageUrl,
+      stripeConnected: false,
     });
   }
 }
