@@ -1,20 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { User, UserDocument, UserView } from './user.schema';
+import { convertToUserView, User, UserDocument, UserView } from './user.schema';
 
 @Injectable()
 export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
-
-  convertToView(user: UserDocument): UserView {
-    return {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      profileImageUrl: user.profileImageUrl,
-    };
-  }
 
   createUser(
     name: string,
@@ -43,7 +34,7 @@ export class UserService {
     return this.userModel
       .findByIdAndUpdate(id, { name: name }, { new: true })
       .exec()
-      .then(this.convertToView);
+      .then(convertToUserView);
   }
 
   changeProfileImage(
@@ -57,12 +48,44 @@ export class UserService {
         { new: true },
       )
       .exec()
-      .then(this.convertToView);
+      .then(convertToUserView);
   }
 
   async addFavouriteVideo(userId: Types.ObjectId, videoId: Types.ObjectId) {
-    await this.userModel.findByIdAndUpdate(userId, {
-      $addToSet: { favourites: videoId },
-    });
+    await this.userModel
+      .updateOne({ _id: userId }, { $addToSet: { favourites: videoId } })
+      .exec();
+  }
+
+  async updateConnectAccount(
+    userId: Types.ObjectId,
+    accountId: string,
+    enabled: boolean,
+  ) {
+    await this.userModel
+      .updateOne(
+        { _id: userId },
+        {
+          $set: {
+            'connectAccount.id': accountId,
+            'connectAccount.enabled': enabled,
+          },
+        },
+      )
+      .exec();
+  }
+
+  async deactivateConnectAccount(accountId: string) {
+    await this.userModel
+      .updateOne(
+        { 'connectAccount.id': accountId },
+        {
+          $set: {
+            'connectAccount.id': null,
+            'connectAccount.enabled': false,
+          },
+        },
+      )
+      .exec();
   }
 }

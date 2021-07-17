@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { UserView } from '../user/user.schema';
+import { convertToUserView, UserView } from '../user/user.schema';
 import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -52,7 +52,7 @@ export class AuthService {
     if (!match) {
       throw new LoginFailedError();
     }
-    return this.userService.convertToView(user);
+    return convertToUserView(user);
   }
 
   createSession(user: any, rememberMe: boolean): AppSession {

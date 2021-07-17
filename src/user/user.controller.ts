@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   Req,
   UploadedFile,
@@ -36,6 +37,11 @@ export class UserController {
     private userService: UserService,
     private mediaService: MediaService,
   ) {}
+
+  @Get('')
+  getUser(@Req() req): AppResponse {
+    return new AppSuccess('user_retrieved', req.user);
+  }
 
   @Post('name')
   async changeName(

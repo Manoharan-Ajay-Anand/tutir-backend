@@ -12,6 +12,7 @@ const testUser: UserView = {
   name: 'testUser',
   email: 'testUser@gmail.com',
   profileImageUrl: 'http://test.com/images/profileImage.jpeg',
+  stripeConnected: false,
 };
 
 const testProfileImage: Express.Multer.File = {
