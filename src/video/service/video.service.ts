@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { UserView } from 'src/user/user.schema';
+import { UserView } from '../../user/user.schema';
 import { VideoNotFoundError } from '../video.error';
 import {
   Video,
@@ -37,6 +37,7 @@ export class VideoService {
         name: user.name,
         profileImageUrl: user.profileImageUrl,
       },
+      canTip: user.stripeConnected,
     });
     return video.save().then(convertToVideoView);
   }
@@ -78,7 +79,7 @@ export class VideoService {
       .then((videos) => videos.map(convertToVideoView));
   }
 
-  getVideoById(id: Types.ObjectId): Promise<VideoView> {
+  getVideoById(id: Types.ObjectId): Promise<VideoDocument> {
     return this.videoModel
       .findById(id)
       .exec()
@@ -86,14 +87,16 @@ export class VideoService {
         if (!video) {
           throw new VideoNotFoundError();
         }
-        return convertToVideoView(video);
+        return video;
       });
   }
 
   getVideosByIdList(idList: Array<Types.ObjectId>): Promise<Array<VideoView>> {
     return Promise.all(
       idList.map((id) => {
-        return this.getVideoById(id).catch(() => null);
+        return this.getVideoById(id)
+          .then(convertToVideoView)
+          .catch(() => null);
       }),
     ).then((videos) => videos.filter((video) => video));
   }

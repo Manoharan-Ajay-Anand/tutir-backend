@@ -1,6 +1,5 @@
 import { Prop, raw, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { Owner } from '../user/user.schema';
 
 export type CommentDocument = Comment & Document;
 
@@ -19,13 +18,13 @@ export class Comment {
       profileImageUrl: { type: String },
     }),
   )
-  owner: Owner;
+  owner: { id: Types.ObjectId; name: string; profileImageUrl: string };
 }
 
 export interface CommentView {
   id: Types.ObjectId;
   text: string;
-  owner: Owner;
+  owner: { id: Types.ObjectId; name: string; profileImageUrl: string };
 }
 
 export function convertToCommentView(comment: CommentDocument): CommentView {
