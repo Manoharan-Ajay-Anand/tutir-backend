@@ -1,11 +1,19 @@
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { VideoModule } from '../video/video.module';
 import { UserModule } from '../user/user.module';
-import { StripeController } from './stripe.controller';
-import { StripeService } from './stripe.service';
+import { StripeController } from './controller/stripe.controller';
+import { StripeService } from './service/stripe.service';
+import { TipService } from './service/tip.service';
+import { Tip, TipSchema } from './tip.schema';
 
 @Module({
-  imports: [UserModule],
-  providers: [StripeService],
+  imports: [
+    MongooseModule.forFeature([{ name: Tip.name, schema: TipSchema }]),
+    UserModule,
+    VideoModule,
+  ],
+  providers: [StripeService, TipService],
   controllers: [StripeController],
   exports: [StripeService],
 })

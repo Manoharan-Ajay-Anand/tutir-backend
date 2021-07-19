@@ -20,11 +20,19 @@ export class UserService {
     return user.save();
   }
 
-  async findOne(id?: Types.ObjectId, email?: string): Promise<UserDocument> {
+  async findOne(
+    id?: Types.ObjectId,
+    email?: string,
+    connectAccountId?: string,
+  ): Promise<UserDocument> {
     if (id) {
       return await this.userModel.findById(id).exec();
     } else if (email) {
       return await this.userModel.findOne({ email: email }).exec();
+    } else if (connectAccountId) {
+      return await this.userModel
+        .findOne({ 'connectAccount.id': connectAccountId })
+        .exec();
     } else {
       throw Error('UserService findOne invalid params');
     }
@@ -75,10 +83,10 @@ export class UserService {
       .exec();
   }
 
-  async deactivateConnectAccount(accountId: string) {
+  async deactivateConnectAccount(userId: Types.ObjectId) {
     await this.userModel
       .updateOne(
-        { 'connectAccount.id': accountId },
+        { _id: userId },
         {
           $set: {
             'connectAccount.id': null,

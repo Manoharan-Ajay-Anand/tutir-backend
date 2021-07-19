@@ -72,6 +72,15 @@ export class VideoService {
     }
   }
 
+  async updateTipAbility(ownerId: Types.ObjectId, canTip: boolean) {
+    await this.videoModel
+      .updateMany(
+        { 'owner.id': { $eq: ownerId } },
+        { $set: { canTip: canTip } },
+      )
+      .exec();
+  }
+
   async getVideosByOwner(ownerId: Types.ObjectId): Promise<Array<VideoView>> {
     return this.videoModel
       .find({ 'owner.id': { $eq: ownerId } })
