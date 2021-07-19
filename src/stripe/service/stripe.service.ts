@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import Stripe from 'stripe';
 import { Types } from 'mongoose';
-import { UserDocument } from '../user/user.schema';
-import { UserOnboardedError } from './stripe.error';
+import { UserDocument } from '../../user/user.schema';
+import { UserOnboardedError } from '../error/stripe.error';
 
 interface OnboardInfo {
   accountId: string;
@@ -58,5 +58,28 @@ export class StripeService {
       signature,
       this.webHookSecret,
     );
+  }
+
+  createPaymentIntent(
+    tipId: Types.ObjectId,
+    amount: number,
+    applicationFee: number,
+    connectAccountId: string,
+  ): Promise<Stripe.PaymentIntent> {
+    return this.stripe.paymentIntents.create(
+      {
+        amount: amount,
+        application_fee_amount: applicationFee,
+        currency: 'sgd',
+        metadata: {
+          tipId: tipId.toHexString(),
+        },
+      },
+      { stripeAccount: connectAccountId },
+    );
+  }
+
+  async cancelPaymentIntent(paymentIntentId: string) {
+    await this.stripe.paymentIntents.cancel(paymentIntentId);
   }
 }
