@@ -6,6 +6,7 @@ import { StripeController } from './controller/stripe.controller';
 import { StripeService } from './service/stripe.service';
 import { TipService } from './service/tip.service';
 import { Tip, TipSchema } from './tip.schema';
+import { TipController } from './controller/tip.controller';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { Tip, TipSchema } from './tip.schema';
     VideoModule,
   ],
   providers: [StripeService, TipService],
-  controllers: [StripeController],
+  controllers: [StripeController, TipController],
   exports: [StripeService],
 })
 export class StripeModule {}

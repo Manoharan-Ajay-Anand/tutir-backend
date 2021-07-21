@@ -79,7 +79,9 @@ export class StripeService {
     );
   }
 
-  async cancelPaymentIntent(paymentIntentId: string) {
-    await this.stripe.paymentIntents.cancel(paymentIntentId);
+  async cancelPaymentIntent(paymentIntentId: string, connectAccountId: string) {
+    await this.stripe.paymentIntents.cancel(paymentIntentId, {
+      stripeAccount: connectAccountId,
+    });
   }
 }

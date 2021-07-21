@@ -49,6 +49,7 @@ export class TipController {
       user.id,
       video,
       paymentIntent.id,
+      owner.connectAccount.id,
     );
     return new AppSuccess('tip_created', {
       id: tipId,
@@ -65,7 +66,10 @@ export class TipController {
     if (!tip.payerId.equals(req.user.id)) {
       throw new CannotCancelTipError();
     }
-    await this.stripeService.cancelPaymentIntent(tip.paymentIntentId);
+    await this.stripeService.cancelPaymentIntent(
+      tip.paymentIntentId,
+      tip.payee.connectAccountId,
+    );
     await this.tipService.cancelTip(tip._id);
     return new AppSuccess('tip_cancelled');
   }

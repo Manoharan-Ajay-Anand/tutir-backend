@@ -15,6 +15,7 @@ export class TipService {
     payerId: Types.ObjectId,
     video: VideoDocument,
     paymentIntentId: string,
+    connectAccountId: string,
   ) {
     const tipModel = new this.tipModel({
       _id: id,
@@ -29,6 +30,7 @@ export class TipService {
         id: video.owner.id,
         name: video.owner.name,
         profileImageUrl: video.owner.profileImageUrl,
+        connectAccountId: connectAccountId,
       },
       paymentIntentId: paymentIntentId,
       confirmed: false,
