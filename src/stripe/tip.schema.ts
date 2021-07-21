@@ -30,12 +30,14 @@ export class Tip {
       id: { type: Types.ObjectId },
       name: { type: String },
       profileImageUrl: { type: String },
+      connectAccountId: { type: String },
     }),
   )
   payee: {
     id: Types.ObjectId;
     name: string;
     profileImageUrl: string;
+    connectAccountId: string;
   };
 
   @Prop()
@@ -68,6 +70,10 @@ export function convertToTipView(tip: TipDocument): TipView {
     amount: tip.amount,
     applicationFee: tip.applicationFee,
     video: tip.video,
-    payee: tip.payee,
+    payee: {
+      id: tip.payee.id,
+      name: tip.payee.name,
+      profileImageUrl: tip.payee.profileImageUrl,
+    },
   };
 }
