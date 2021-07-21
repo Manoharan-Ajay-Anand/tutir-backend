@@ -54,6 +54,7 @@ export class TipController {
     return new AppSuccess('tip_created', {
       id: tipId,
       clientSecret: paymentIntent.client_secret,
+      connectAccountId: owner.connectAccount.id,
     });
   }
 
