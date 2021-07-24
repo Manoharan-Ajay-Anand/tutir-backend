@@ -65,6 +65,12 @@ export class UserService {
       .exec();
   }
 
+  async removeFavouriteVideo(userId: Types.ObjectId, videoId: Types.ObjectId) {
+    await this.userModel
+      .updateOne({ _id: userId }, { $pull: { favourites: videoId } })
+      .exec();
+  }
+
   async updateConnectAccount(
     userId: Types.ObjectId,
     accountId: string,

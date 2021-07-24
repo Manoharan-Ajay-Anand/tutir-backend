@@ -10,6 +10,21 @@ import {
 import { View, ViewDocument } from '../schema/view.schema';
 import { VideoService } from './video.service';
 
+const months = [
+  'jan',
+  'feb',
+  'mar',
+  'apr',
+  'may',
+  'jun',
+  'jul',
+  'aug',
+  'sep',
+  'oct',
+  'nov',
+  'dec',
+];
+
 @Injectable()
 export class AnalyticsService {
   constructor(
@@ -22,6 +37,7 @@ export class AnalyticsService {
     const view = new this.viewModel({
       videoId: video.id,
       viewerId: viewerId,
+      creatorId: video.owner.id,
       tags: video.tags,
     });
     await view.save();
@@ -89,5 +105,33 @@ export class AnalyticsService {
       ])
       .exec()
       .then((docs) => docs.map((doc) => doc._id));
+  }
+
+  searchVideo(query: string): Promise<Array<VideoView>> {
+    return this.videoModel
+      .find({ $text: { $search: query } })
+      .exec()
+      .then((videos) => videos.map(convertToVideoView));
+  }
+
+  async getViewership(creatorId: Types.ObjectId) {
+    const data = {};
+    const views = await this.viewModel
+      .aggregate([
+        { $match: { creatorId: creatorId } },
+        {
+          $project: {
+            year: { $year: '$_id' },
+            month: { $month: '$_id' },
+          },
+        },
+        { $match: { year: new Date().getUTCFullYear() } },
+        { $group: { _id: '$month', views: { $sum: 1 } } },
+      ])
+      .exec();
+    views.forEach((view) => {
+      data[months[view._id - 1]] = view.views;
+    });
+    return data;
   }
 }

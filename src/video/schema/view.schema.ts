@@ -11,6 +11,9 @@ export class View {
   @Prop()
   viewerId: Types.ObjectId;
 
+  @Prop()
+  creatorId: Types.ObjectId;
+
   @Prop([String])
   tags: string[];
 }

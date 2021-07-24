@@ -129,7 +129,9 @@ export class VideoController {
         .then(convertToVideoView);
       await this.videoService.incrementView(videoId);
       if (req.user) {
+        const user = await this.userService.findOne(req.user.id);
         await this.analyticsService.addView(payload, req.user.id);
+        payload.isFavourite = user.favourites.includes(payload.id);
       }
     } else if (owner) {
       payload = await this.videoService.getVideosByOwner(
@@ -147,7 +149,7 @@ export class VideoController {
     return new AppSuccess('videos_retrieved', payload);
   }
 
-  @Post('favourites')
+  @Post('favourites/add')
   @UseGuards(SessionAuthGuard)
   async addFavourite(
     @Req() req,
@@ -157,6 +159,18 @@ export class VideoController {
     await this.videoService.getVideoById(videoId);
     this.userService.addFavouriteVideo(req.user.id, videoId);
     return new AppSuccess('favourites_added');
+  }
+
+  @Post('favourites/remove')
+  @UseGuards(SessionAuthGuard)
+  async removeFavourite(
+    @Req() req,
+    @Body('video') video: string,
+  ): Promise<AppResponse> {
+    const videoId = new Types.ObjectId(video);
+    await this.videoService.getVideoById(videoId);
+    this.userService.removeFavouriteVideo(req.user.id, videoId);
+    return new AppSuccess('favourites_remove');
   }
 
   @Get('favourites')
@@ -180,5 +194,19 @@ export class VideoController {
     return this.analyticsService
       .getTopVideoTags()
       .then((tags) => new AppSuccess('tags_retrieved', tags));
+  }
+
+  @Get('search')
+  searchVideos(@Query('q') query: string): Promise<AppResponse> {
+    return this.analyticsService
+      .searchVideo(query)
+      .then((videos) => new AppSuccess('search_retrieved', videos));
+  }
+
+  @Get('viewership')
+  getViewership(@Query('creatorId') creatorId: string): Promise<AppResponse> {
+    return this.analyticsService
+      .getViewership(new Types.ObjectId(creatorId))
+      .then((data) => new AppSuccess('viewership_retrieved', data));
   }
 }
