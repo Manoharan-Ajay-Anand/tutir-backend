@@ -7,12 +7,14 @@ import { Video, VideoSchema } from './schema/video.schema';
 import { VideoService } from './service/video.service';
 import { View, ViewSchema } from './schema/view.schema';
 import { AnalyticsService } from './service/analytics.service';
+import { Search, SearchSchema } from './schema/search.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Video.name, schema: VideoSchema },
       { name: View.name, schema: ViewSchema },
+      { name: Search.name, schema: SearchSchema },
     ]),
     MediaModule,
     UserModule,
