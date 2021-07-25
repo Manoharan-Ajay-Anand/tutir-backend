@@ -197,10 +197,17 @@ export class VideoController {
   }
 
   @Get('search')
-  searchVideos(@Query('q') query: string): Promise<AppResponse> {
+  async searchVideos(@Query('q') query: string): Promise<AppResponse> {
+    const videos = await this.analyticsService.searchVideo(query);
+    await this.analyticsService.addSearchQuery(query, videos.length);
+    return new AppSuccess('search_retrieved', videos);
+  }
+
+  @Get('autocomplete')
+  autoCompleteQuery(@Query('q') query: string): Promise<AppResponse> {
     return this.analyticsService
-      .searchVideo(query)
-      .then((videos) => new AppSuccess('search_retrieved', videos));
+      .autoCompleteSearchQuery(query)
+      .then((results) => new AppSuccess('autocomplete_retrieved', results));
   }
 
   @Get('viewership')

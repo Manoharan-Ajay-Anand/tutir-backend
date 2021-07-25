@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { Search, SearchDocument } from '../schema/search.schema';
 import {
   convertToVideoView,
   Video,
@@ -31,6 +32,7 @@ export class AnalyticsService {
     private videoService: VideoService,
     @InjectModel(Video.name) private videoModel: Model<VideoDocument>,
     @InjectModel(View.name) private viewModel: Model<ViewDocument>,
+    @InjectModel(Search.name) private searchModel: Model<SearchDocument>,
   ) {}
 
   async addView(video: VideoView, viewerId: Types.ObjectId) {
@@ -110,8 +112,27 @@ export class AnalyticsService {
   searchVideo(query: string): Promise<Array<VideoView>> {
     return this.videoModel
       .find({ $text: { $search: query } })
+      .sort({ score: { $meta: 'textScore' } })
       .exec()
       .then((videos) => videos.map(convertToVideoView));
+  }
+
+  async addSearchQuery(query: string, results: number) {
+    await this.searchModel
+      .updateOne(
+        { query: query },
+        { $set: { results: results } },
+        { upsert: true },
+      )
+      .exec();
+  }
+
+  autoCompleteSearchQuery(query: string): Promise<Array<string>> {
+    return this.searchModel
+      .find({ $text: { $search: query } })
+      .sort({ results: -1 })
+      .exec()
+      .then((searches) => searches.map((search) => search.query));
   }
 
   async getViewership(creatorId: Types.ObjectId) {
